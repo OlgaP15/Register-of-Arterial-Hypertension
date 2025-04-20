@@ -3,46 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Регистр АГ (Локальная версия)</title>
+  <title>Регистр пациентов с АГ</title>
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="data:,"> <!-- Убираем ошибку favicon -->
+  <link rel="icon" href="data:,">
 </head>
 <body>
-  <header>
-    <h1>Регистр пациентов с АГ</h1>
-  </header>
-
-  <main>
-    <section class="patient-form">
-      <h2>Добавить пациента</h2>
-      <form id="patient-form">
-        <input type="text" id="patient-name" placeholder="ФИО" required>
-        <input type="date" id="patient-birthdate" placeholder="Дата рождения">
-        <input type="number" id="patient-height" placeholder="Рост (см)">
-        <input type="number" id="patient-weight" placeholder="Вес (кг)">
-        <button type="submit">Сохранить</button>
-      </form>
-    </section>
-
-    <section class="patient-list">
-      <h2>Список пациентов</h2>
-      <table id="patients-table">
-        <thead>
-          <tr>
-            <th>ФИО</th>
-            <th>Дата рождения</th>
-            <th>ИМТ</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div class="export-buttons">
-        <button id="print-btn">Печать данных</button>
-        <button id="export-excel-btn">Экспорт в Excel</button>
+  <div class="container">
+    <header>
+      <h1>Регистр артериальной гипертензии</h1>
+      <div class="header-actions">
+        <button id="refresh-btn">Обновить данные</button>
       </div>
-    </section>
-  </main>
+    </header>
+
+    <main>
+      <section class="card patient-form">
+        <h2><i class="icon">➕</i> Добавить пациента</h2>
+        <form id="patient-form">
+          <div class="form-group">
+            <label for="patient-name">ФИО</label>
+            <input type="text" id="patient-name" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="patient-birthdate">Дата рождения</label>
+              <input type="date" id="patient-birthdate">
+            </div>
+            <div class="form-group">
+              <label for="patient-height">Рост (см)</label>
+              <input type="number" id="patient-height" min="100" max="250">
+            </div>
+            <div class="form-group">
+              <label for="patient-weight">Вес (кг)</label>
+              <input type="number" id="patient-weight" min="30" max="300">
+            </div>
+          </div>
+          <button type="submit" class="primary-btn">Сохранить</button>
+        </form>
+      </section>
+
+      <section class="card patient-list">
+        <div class="section-header">
+          <h2><i class="icon">📋</i> Список пациентов</h2>
+          <div class="export-buttons">
+            <button id="print-btn" class="secondary-btn">🖨️ Печать</button>
+            <button id="export-excel-btn" class="secondary-btn">📊 Excel</button>
+          </div>
+        </div>
+        
+        <div class="table-container">
+          <table id="patients-table">
+            <thead>
+              <tr>
+                <th>ФИО</th>
+                <th>Дата рождения</th>
+                <th>ИМТ</th>
+                <th>Статус</th>
+                <th>Действия</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script src="script.js"></script>
