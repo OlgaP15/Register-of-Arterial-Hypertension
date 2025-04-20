@@ -12,39 +12,50 @@
     <header>
       <h1>Регистр артериальной гипертензии</h1>
       <div class="header-actions">
-        <button id="refresh-btn">Обновить данные</button>
+        <button id="refresh-btn" class="secondary-btn">⟳ Обновить</button>
       </div>
     </header>
 
     <main>
       <section class="card patient-form">
-        <h2><i class="icon">➕</i> Добавить пациента</h2>
+        <h2><span class="icon">➕</span> Данные пациента</h2>
         <form id="patient-form">
           <div class="form-group">
-            <label for="patient-name">ФИО</label>
+            <label for="patient-name">ФИО *</label>
             <input type="text" id="patient-name" required>
+            <div class="error-message" id="name-error"></div>
           </div>
+          
           <div class="form-row">
             <div class="form-group">
-              <label for="patient-birthdate">Дата рождения</label>
-              <input type="date" id="patient-birthdate">
+              <label for="patient-birthdate">Дата рождения *</label>
+              <input type="date" id="patient-birthdate" required>
+              <div class="error-message" id="birthdate-error"></div>
             </div>
+            
             <div class="form-group">
-              <label for="patient-height">Рост (см)</label>
-              <input type="number" id="patient-height" min="100" max="250">
+              <label for="patient-height">Рост (см) *</label>
+              <input type="number" id="patient-height" min="100" max="250" required>
+              <div class="error-message" id="height-error"></div>
             </div>
+            
             <div class="form-group">
-              <label for="patient-weight">Вес (кг)</label>
-              <input type="number" id="patient-weight" min="30" max="300">
+              <label for="patient-weight">Вес (кг) *</label>
+              <input type="number" id="patient-weight" min="30" max="300" required>
+              <div class="error-message" id="weight-error"></div>
             </div>
           </div>
-          <button type="submit" class="primary-btn">Сохранить</button>
+          
+          <div class="form-actions">
+            <button type="submit" id="submit-btn" class="primary-btn" disabled>Сохранить</button>
+            <button type="button" id="cancel-edit" class="secondary-btn hidden">Отменить</button>
+          </div>
         </form>
       </section>
 
       <section class="card patient-list">
         <div class="section-header">
-          <h2><i class="icon">📋</i> Список пациентов</h2>
+          <h2><span class="icon">📋</span> Список пациентов</h2>
           <div class="export-buttons">
             <button id="print-btn" class="secondary-btn">🖨️ Печать</button>
             <button id="export-excel-btn" class="secondary-btn">📊 Excel</button>
@@ -58,7 +69,7 @@
                 <th>ФИО</th>
                 <th>Дата рождения</th>
                 <th>ИМТ</th>
-                <th>Статус</th>
+                <th>Категория</th>
                 <th>Действия</th>
               </tr>
             </thead>
