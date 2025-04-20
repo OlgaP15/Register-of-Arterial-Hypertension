@@ -12,7 +12,9 @@
     <header>
       <h1>Регистр артериальной гипертензии</h1>
       <div class="header-actions">
-        <button id="refresh-btn" class="secondary-btn">⟳ Обновить</button>
+        <button id="refresh-btn" class="secondary-btn">
+          <span id="refresh-icon">⟳</span> Обновить
+        </button>
       </div>
     </header>
 
@@ -21,26 +23,26 @@
         <h2><span class="icon">➕</span> Данные пациента</h2>
         <form id="patient-form">
           <div class="form-group">
-            <label for="patient-name">ФИО *</label>
+            <label for="patient-name" class="required-field">ФИО</label>
             <input type="text" id="patient-name" required>
             <div class="error-message" id="name-error"></div>
           </div>
           
           <div class="form-row">
             <div class="form-group">
-              <label for="patient-birthdate">Дата рождения *</label>
+              <label for="patient-birthdate" class="required-field">Дата рождения</label>
               <input type="date" id="patient-birthdate" required>
               <div class="error-message" id="birthdate-error"></div>
             </div>
             
             <div class="form-group">
-              <label for="patient-height">Рост (см) *</label>
+              <label for="patient-height" class="required-field">Рост (см)</label>
               <input type="number" id="patient-height" min="100" max="250" required>
               <div class="error-message" id="height-error"></div>
             </div>
             
             <div class="form-group">
-              <label for="patient-weight">Вес (кг) *</label>
+              <label for="patient-weight" class="required-field">Вес (кг)</label>
               <input type="number" id="patient-weight" min="30" max="300" required>
               <div class="error-message" id="weight-error"></div>
             </div>

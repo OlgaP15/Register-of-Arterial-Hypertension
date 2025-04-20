@@ -12,6 +12,7 @@ const elements = {
   form: document.getElementById('patient-form'),
   table: document.getElementById('patients-table'),
   refreshBtn: document.getElementById('refresh-btn'),
+  refreshIcon: document.getElementById('refresh-icon'),
   submitBtn: document.getElementById('submit-btn'),
   cancelEditBtn: document.getElementById('cancel-edit'),
   inputs: {
@@ -28,8 +29,10 @@ const elements = {
   }
 };
 
-// Инициализация
-document.addEventListener('DOMContentLoaded', initApp);
+// Инициализация приложения
+document.addEventListener('DOMContentLoaded', () => {
+  initApp();
+});
 
 function initApp() {
   setupEventListeners();
@@ -43,11 +46,17 @@ function setupEventListeners() {
     input.addEventListener('input', validateForm);
   });
 
-  // Обработчики формы
+  // Обработка отправки формы
   elements.form.addEventListener('submit', handleFormSubmit);
+
+  // Кнопка отмены редактирования
   elements.cancelEditBtn.addEventListener('click', cancelEdit);
-  elements.refreshBtn.addEventListener('click', loadPatients);
-  
+
+  // Кнопка обновления данных
+  elements.refreshBtn.addEventListener('click', () => {
+    loadPatients();
+  });
+
   // Кнопки экспорта
   document.getElementById('print-btn').addEventListener('click', printData);
   document.getElementById('export-excel-btn').addEventListener('click', exportToExcel);
@@ -72,40 +81,48 @@ function validateForm() {
     elements.errors.birthdate.textContent = '';
   }
   
-  if (!elements.inputs.height.value || elements.inputs.height.value < 100 || elements.inputs.height.value > 250) {
+  const height = parseFloat(elements.inputs.height.value);
+  if (!height || height < 100 || height > 250) {
     elements.errors.height.textContent = 'Введите рост от 100 до 250 см';
     isValid = false;
   } else {
     elements.errors.height.textContent = '';
   }
   
-  if (!elements.inputs.weight.value || elements.inputs.weight.value < 30 || elements.inputs.weight.value > 300) {
+  const weight = parseFloat(elements.inputs.weight.value);
+  if (!weight || weight < 30 || weight > 300) {
     elements.errors.weight.textContent = 'Введите вес от 30 до 300 кг';
     isValid = false;
   } else {
     elements.errors.weight.textContent = '';
   }
   
-  // Активация/деактивация кнопки
+  // Активация/деактивация кнопки сохранения
   elements.submitBtn.disabled = !isValid;
   
   return isValid;
 }
 
-// Загрузка пациентов
+// Загрузка списка пациентов
 async function loadPatients() {
   try {
+    showLoading(true);
+    
     const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Ошибка загрузки данных');
+    if (!response.ok) {
+      throw new Error(`Ошибка HTTP: ${response.status}`);
+    }
     
     const patients = await response.json();
     renderPatients(patients);
   } catch (error) {
-    showError(`Ошибка загрузки: ${error.message}`);
+    showError(`Ошибка загрузки пациентов: ${error.message}`);
+  } finally {
+    showLoading(false);
   }
 }
 
-// Рендер списка пациентов
+// Отображение списка пациентов
 function renderPatients(patients) {
   const tbody = elements.table.querySelector('tbody');
   tbody.innerHTML = patients.map(patient => {
@@ -127,12 +144,15 @@ function renderPatients(patients) {
   }).join('');
 }
 
-// Обработка формы
+// Обработка отправки формы
 async function handleFormSubmit(e) {
   e.preventDefault();
   
-  if (!validateForm()) return;
-  
+  if (!validateForm()) {
+    showError('Заполните все обязательные поля корректно');
+    return;
+  }
+
   const patient = {
     name: elements.inputs.name.value.trim(),
     birthDate: elements.inputs.birthdate.value,
@@ -145,31 +165,41 @@ async function handleFormSubmit(e) {
     const url = isEditing ? `${API_URL}/${elements.form.dataset.editingId}` : API_URL;
     const method = isEditing ? 'PUT' : 'POST';
 
+    showLoading(true);
+    
     const response = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patient)
     });
 
-    if (!response.ok) throw new Error(isEditing ? 'Ошибка обновления' : 'Ошибка сохранения');
-    
+    if (!response.ok) {
+      throw new Error(isEditing ? 'Ошибка обновления данных' : 'Ошибка сохранения данных');
+    }
+
     resetForm();
     await loadPatients();
     showSuccess(isEditing ? 'Данные пациента обновлены' : 'Новый пациент добавлен');
   } catch (error) {
     showError(error.message);
+  } finally {
+    showLoading(false);
   }
 }
 
 // Редактирование пациента
 async function editPatient(id) {
   try {
+    showLoading(true);
+    
     const response = await fetch(`${API_URL}/${id}`);
-    if (!response.ok) throw new Error('Ошибка загрузки данных пациента');
+    if (!response.ok) {
+      throw new Error('Ошибка загрузки данных пациента');
+    }
     
     const patient = await response.json();
     
-    // Заполняем форму
+    // Заполняем форму данными пациента
     elements.inputs.name.value = patient.name || '';
     elements.inputs.birthdate.value = patient.birthDate || '';
     elements.inputs.height.value = patient.height || '';
@@ -183,10 +213,12 @@ async function editPatient(id) {
     // Прокрутка к форме
     elements.form.scrollIntoView({ behavior: 'smooth' });
     
-    // Валидация
+    // Валидация формы
     validateForm();
   } catch (error) {
     showError(error.message);
+  } finally {
+    showLoading(false);
   }
 }
 
@@ -207,27 +239,58 @@ function resetForm() {
 
 // Удаление пациента
 async function deletePatient(id) {
-  if (!confirm('Вы уверены, что хотите удалить этого пациента?')) return;
-  
+  if (!confirm('Вы уверены, что хотите удалить этого пациента?')) {
+    return;
+  }
+
   try {
-    const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Ошибка удаления');
+    showLoading(true);
+    
+    const response = await fetch(`${API_URL}/${id}`, { 
+      method: 'DELETE' 
+    });
+    
+    if (!response.ok) {
+      throw new Error('Ошибка удаления пациента');
+    }
     
     await loadPatients();
-    showSuccess('Пациент удален');
+    showSuccess('Пациент успешно удален');
   } catch (error) {
     showError(error.message);
+  } finally {
+    showLoading(false);
   }
 }
 
-// Вспомогательные функции
-function calculateBMI(height, weight) {
-  if (!height || !weight) return '-';
-  return (weight / ((height / 100) ** 2).toFixed(1);
+// Показать/скрыть состояние загрузки
+function showLoading(isLoading) {
+  if (isLoading) {
+    elements.refreshIcon.classList.add('refresh-animation');
+    elements.refreshBtn.disabled = true;
+    elements.submitBtn.disabled = true;
+  } else {
+    elements.refreshIcon.classList.remove('refresh-animation');
+    elements.refreshBtn.disabled = false;
+    validateForm();
+  }
 }
 
+// Расчет ИМТ
+function calculateBMI(height, weight) {
+  if (!height || !weight) return '-';
+  return (weight / ((height / 100) ** 2)).toFixed(1);
+}
+
+// Получение информации о категории ИМТ
 function getBMIInfo(height, weight) {
-  if (!height || !weight) return { class: '', label: 'Недостаточно данных', icon: '❓' };
+  if (!height || !weight) {
+    return { 
+      class: '', 
+      label: 'Недостаточно данных', 
+      icon: '❓' 
+    };
+  }
   
   const bmi = weight / ((height / 100) ** 2);
   for (const [key, value] of Object.entries(BMI_CATEGORIES)) {
@@ -236,12 +299,14 @@ function getBMIInfo(height, weight) {
   return BMI_CATEGORIES.obese;
 }
 
+// Форматирование даты
 function formatDate(dateString) {
   if (!dateString) return null;
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   return new Date(dateString).toLocaleDateString('ru-RU', options);
 }
 
+// Показать сообщение об ошибке
 function showError(message) {
   const alert = document.createElement('div');
   alert.className = 'alert error';
@@ -250,6 +315,7 @@ function showError(message) {
   setTimeout(() => alert.remove(), 5000);
 }
 
+// Показать сообщение об успехе
 function showSuccess(message) {
   const alert = document.createElement('div');
   alert.className = 'alert success';
@@ -258,11 +324,15 @@ function showSuccess(message) {
   setTimeout(() => alert.remove(), 3000);
 }
 
-// Экспорт данных
+// Экспорт в Excel
 async function exportToExcel() {
   try {
+    showLoading(true);
+    
     const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Ошибка загрузки данных для экспорта');
+    if (!response.ok) {
+      throw new Error('Ошибка загрузки данных для экспорта');
+    }
     
     const patients = await response.json();
     const data = patients.map(patient => {
@@ -282,12 +352,19 @@ async function exportToExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Пациенты");
     XLSX.writeFile(wb, "пациенты_АГ.xlsx");
-    showSuccess('Данные экспортированы в Excel');
+    showSuccess('Данные успешно экспортированы в Excel');
   } catch (error) {
     showError(`Ошибка экспорта: ${error.message}`);
+  } finally {
+    showLoading(false);
   }
 }
 
+// Печать данных
 function printData() {
   window.print();
 }
+
+// Глобальные функции для вызова из HTML
+window.editPatient = editPatient;
+window.deletePatient = deletePatient;
