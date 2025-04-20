@@ -1,5 +1,5 @@
 // База данных (JSON-сервер)
-const API_URL = 'http://localhost:3000/patients';
+const API_URL = 'http://localhost:3001/patients';
 
 // Загрузка пациентов
 async function loadPatients() {
