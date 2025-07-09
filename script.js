@@ -1,36 +1,46 @@
 // Конфигурация
-const API_URL = 'http://localhost:3001/patients';
+const API_URL = "http://localhost:3001/patients";
 const BMI_CATEGORIES = {
-  underweight: { max: 18.5, class: 'underweight', label: 'Недостаток веса', icon: '⚠️' },
-  normal: { max: 25, class: 'normal', label: 'Норма', icon: '✅' },
-  overweight: { max: 30, class: 'overweight', label: 'Избыток веса', icon: '⚠️' },
-  obese: { max: Infinity, class: 'obese', label: 'Ожирение', icon: '❌' }
+  underweight: {
+    max: 18.5,
+    class: "underweight",
+    label: "Недостаток веса",
+    icon: "⚠️",
+  },
+  normal: { max: 25, class: "normal", label: "Норма", icon: "✅" },
+  overweight: {
+    max: 30,
+    class: "overweight",
+    label: "Избыток веса",
+    icon: "⚠️",
+  },
+  obese: { max: Infinity, class: "obese", label: "Ожирение", icon: "❌" },
 };
 
 // DOM элементы
 const elements = {
-  form: document.getElementById('patient-form'),
-  table: document.getElementById('patients-table'),
-  refreshBtn: document.getElementById('refresh-btn'),
-  refreshIcon: document.getElementById('refresh-icon'),
-  submitBtn: document.getElementById('submit-btn'),
-  cancelEditBtn: document.getElementById('cancel-edit'),
+  form: document.getElementById("patient-form"),
+  table: document.getElementById("patients-table"),
+  refreshBtn: document.getElementById("refresh-btn"),
+  refreshIcon: document.getElementById("refresh-icon"),
+  submitBtn: document.getElementById("submit-btn"),
+  cancelEditBtn: document.getElementById("cancel-edit"),
   inputs: {
-    name: document.getElementById('patient-name'),
-    birthdate: document.getElementById('patient-birthdate'),
-    height: document.getElementById('patient-height'),
-    weight: document.getElementById('patient-weight')
+    name: document.getElementById("patient-name"),
+    birthdate: document.getElementById("patient-birthdate"),
+    height: document.getElementById("patient-height"),
+    weight: document.getElementById("patient-weight"),
   },
   errors: {
-    name: document.getElementById('name-error'),
-    birthdate: document.getElementById('birthdate-error'),
-    height: document.getElementById('height-error'),
-    weight: document.getElementById('weight-error')
-  }
+    name: document.getElementById("name-error"),
+    birthdate: document.getElementById("birthdate-error"),
+    height: document.getElementById("height-error"),
+    weight: document.getElementById("weight-error"),
+  },
 };
 
 // Инициализация приложения
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   initApp();
 });
 
@@ -42,64 +52,66 @@ function initApp() {
 
 function setupEventListeners() {
   // Валидация формы при изменении полей
-  Object.values(elements.inputs).forEach(input => {
-    input.addEventListener('input', validateForm);
+  Object.values(elements.inputs).forEach((input) => {
+    input.addEventListener("input", validateForm);
   });
 
   // Обработка отправки формы
-  elements.form.addEventListener('submit', handleFormSubmit);
+  elements.form.addEventListener("submit", handleFormSubmit);
 
   // Кнопка отмены редактирования
-  elements.cancelEditBtn.addEventListener('click', cancelEdit);
+  elements.cancelEditBtn.addEventListener("click", cancelEdit);
 
   // Кнопка обновления данных
-  elements.refreshBtn.addEventListener('click', () => {
+  elements.refreshBtn.addEventListener("click", () => {
     loadPatients();
   });
 
   // Кнопки экспорта
-  document.getElementById('print-btn').addEventListener('click', printData);
-  document.getElementById('export-excel-btn').addEventListener('click', exportToExcel);
+  document.getElementById("print-btn").addEventListener("click", printData);
+  document
+    .getElementById("export-excel-btn")
+    .addEventListener("click", exportToExcel);
 }
 
 // Валидация формы
 function validateForm() {
   let isValid = true;
-  
+
   // Проверка всех полей
   if (!elements.inputs.name.value.trim()) {
-    elements.errors.name.textContent = 'Введите ФИО пациента';
+    elements.errors.name.textContent = "Введите ФИО пациента";
     isValid = false;
   } else {
-    elements.errors.name.textContent = '';
+    elements.errors.name.textContent = "";
   }
-  
+
   if (!elements.inputs.birthdate.value) {
-    elements.errors.birthdate.textContent = 'Укажите дату рождения';
+    elements.errors.birthdate.textContent = "Укажите дату рождения";
     isValid = false;
   } else {
-    elements.errors.birthdate.textContent = '';
+    elements.errors.birthdate.textContent = "";
   }
-  
+
   const height = parseFloat(elements.inputs.height.value);
   if (!height || height < 100 || height > 250) {
-    elements.errors.height.textContent = 'Введите рост от 100 до 250 см';
+    elements.errors.height.textContent = "Введите рост от 100 до 250 см";
     isValid = false;
   } else {
-    elements.errors.height.textContent = '';
+    elements.errors.height.textContent = "";
   }
-  
+
   const weight = parseFloat(elements.inputs.weight.value);
   if (!weight || weight < 30 || weight > 300) {
-    elements.errors.weight.textContent = 'Введите вес от 30 до 300 кг';
+    elements.errors.weight.textContent = "Введите вес от 30 до 300 кг";
     isValid = false;
   } else {
-    elements.errors.weight.textContent = '';
+    elements.errors.weight.textContent = "";
   }
-  
+
   // Активация/деактивация кнопки сохранения
   elements.submitBtn.disabled = !isValid;
-  
+
   return isValid;
 }
 
@@ -107,12 +119,12 @@ function validateForm() {
 async function loadPatients() {
   try {
     showLoading(true);
-    
+
     const response = await fetch(API_URL);
     if (!response.ok) {
       throw new Error(`Ошибка HTTP: ${response.status}`);
     }
-    
+
     const patients = await response.json();
     renderPatients(patients);
   } catch (error) {
@@ -124,32 +136,59 @@ async function loadPatients() {
 
 // Отображение списка пациентов
 function renderPatients(patients) {
-  const tbody = elements.table.querySelector('tbody');
-  tbody.innerHTML = patients.map(patient => {
-    const bmiInfo = getBMIInfo(patient.height, patient.weight);
-    return `
+  const tbody = elements.table.querySelector("tbody");
+  tbody.innerHTML = patients
+    .map((patient) => {
+      const bmiInfo = getBMIInfo(patient.height, patient.weight);
+      return `
       <tr>
-        <td>${patient.name || '<span class="missing-data">не указано</span>'}</td>
-        <td>${formatDate(patient.birthDate) || '<span class="missing-data">не указана</span>'}</td>
+        <td>${
+          patient.name || '<span class="missing-data">не указано</span>'
+        }</td>
+        <td>${
+          formatDate(patient.birthDate) ||
+          '<span class="missing-data">не указана</span>'
+        }</td>
         <td>${calculateBMI(patient.height, patient.weight)}</td>
         <td class="${bmiInfo.class}">
           <span class="status-icon">${bmiInfo.icon}</span> ${bmiInfo.label}
         </td>
         <td>
-          <button onclick="editPatient(${patient.id})" class="edit-btn">✏️</button>
-          <button onclick="deletePatient(${patient.id})" class="danger-btn">🗑️</button>
+          <button data-id="${patient.id}" class="edit-btn">✏️</button>
+          <button data-id="${patient.id}" class="danger-btn">🗑️</button>
         </td>
       </tr>
     `;
-  }).join('');
+    })
+    .join("");
+
+  // Добавляем обработчики событий после рендеринга
+  addEventListenersToButtons();
+}
+
+// Добавление обработчиков событий к кнопкам
+function addEventListenersToButtons() {
+  document.querySelectorAll(".edit-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.getAttribute("data-id");
+      editPatient(id);
+    });
+  });
+
+  document.querySelectorAll(".danger-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const id = e.target.getAttribute("data-id");
+      deletePatient(id);
+    });
+  });
 }
 
 // Обработка отправки формы
 async function handleFormSubmit(e) {
   e.preventDefault();
-  
+
   if (!validateForm()) {
-    showError('Заполните все обязательные поля корректно');
+    showError("Заполните все обязательные поля корректно");
     return;
   }
 
@@ -157,29 +196,35 @@ async function handleFormSubmit(e) {
     name: elements.inputs.name.value.trim(),
     birthDate: elements.inputs.birthdate.value,
     height: parseFloat(elements.inputs.height.value),
-    weight: parseFloat(elements.inputs.weight.value)
+    weight: parseFloat(elements.inputs.weight.value),
   };
 
   try {
     const isEditing = elements.form.dataset.editingId;
-    const url = isEditing ? `${API_URL}/${elements.form.dataset.editingId}` : API_URL;
-    const method = isEditing ? 'PUT' : 'POST';
+    const url = isEditing
+      ? `${API_URL}/${elements.form.dataset.editingId}`
+      : API_URL;
+    const method = isEditing ? "PUT" : "POST";
 
     showLoading(true);
-    
+
     const response = await fetch(url, {
       method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(patient)
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patient),
     });
 
     if (!response.ok) {
-      throw new Error(isEditing ? 'Ошибка обновления данных' : 'Ошибка сохранения данных');
+      throw new Error(
+        isEditing ? "Ошибка обновления данных" : "Ошибка сохранения данных"
+      );
     }
 
     resetForm();
     await loadPatients();
-    showSuccess(isEditing ? 'Данные пациента обновлены' : 'Новый пациент добавлен');
+    showSuccess(
+      isEditing ? "Данные пациента обновлены" : "Новый пациент добавлен"
+    );
   } catch (error) {
     showError(error.message);
   } finally {
@@ -191,28 +236,28 @@ async function handleFormSubmit(e) {
 async function editPatient(id) {
   try {
     showLoading(true);
-    
+
     const response = await fetch(`${API_URL}/${id}`);
     if (!response.ok) {
-      throw new Error('Ошибка загрузки данных пациента');
+      throw new Error("Ошибка загрузки данных пациента");
     }
-    
+
     const patient = await response.json();
-    
+
     // Заполняем форму данными пациента
-    elements.inputs.name.value = patient.name || '';
-    elements.inputs.birthdate.value = patient.birthDate || '';
-    elements.inputs.height.value = patient.height || '';
-    elements.inputs.weight.value = patient.weight || '';
-    
+    elements.inputs.name.value = patient.name || "";
+    elements.inputs.birthdate.value = patient.birthDate || "";
+    elements.inputs.height.value = patient.height || "";
+    elements.inputs.weight.value = patient.weight || "";
+
     // Активируем режим редактирования
     elements.form.dataset.editingId = id;
-    elements.cancelEditBtn.classList.remove('hidden');
-    elements.submitBtn.textContent = 'Обновить';
-    
+    elements.cancelEditBtn.classList.remove("hidden");
+    elements.submitBtn.textContent = "Обновить";
+
     // Прокрутка к форме
-    elements.form.scrollIntoView({ behavior: 'smooth' });
-    
+    elements.form.scrollIntoView({ behavior: "smooth" });
+
     // Валидация формы
     validateForm();
   } catch (error) {
@@ -225,37 +270,37 @@ async function editPatient(id) {
 // Отмена редактирования
 function cancelEdit() {
   resetForm();
-  showSuccess('Редактирование отменено');
+  showSuccess("Редактирование отменено");
 }
 
 // Сброс формы
 function resetForm() {
   elements.form.reset();
   delete elements.form.dataset.editingId;
-  elements.cancelEditBtn.classList.add('hidden');
-  elements.submitBtn.textContent = 'Сохранить';
+  elements.cancelEditBtn.classList.add("hidden");
+  elements.submitBtn.textContent = "Сохранить";
   validateForm();
 }
 
 // Удаление пациента
 async function deletePatient(id) {
-  if (!confirm('Вы уверены, что хотите удалить этого пациента?')) {
+  if (!confirm("Вы уверены, что хотите удалить этого пациента?")) {
     return;
   }
 
   try {
     showLoading(true);
-    
-    const response = await fetch(`${API_URL}/${id}`, { 
-      method: 'DELETE' 
+
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
     });
-    
+
     if (!response.ok) {
-      throw new Error('Ошибка удаления пациента');
+      throw new Error("Ошибка удаления пациента");
     }
-    
+
     await loadPatients();
-    showSuccess('Пациент успешно удален');
+    showSuccess("Пациент успешно удален");
   } catch (error) {
     showError(error.message);
   } finally {
@@ -266,11 +311,11 @@ async function deletePatient(id) {
 // Показать/скрыть состояние загрузки
 function showLoading(isLoading) {
   if (isLoading) {
-    elements.refreshIcon.classList.add('refresh-animation');
+    elements.refreshIcon.classList.add("refresh-animation");
     elements.refreshBtn.disabled = true;
     elements.submitBtn.disabled = true;
   } else {
-    elements.refreshIcon.classList.remove('refresh-animation');
+    elements.refreshIcon.classList.remove("refresh-animation");
     elements.refreshBtn.disabled = false;
     validateForm();
   }
@@ -278,21 +323,21 @@ function showLoading(isLoading) {
 
 // Расчет ИМТ
 function calculateBMI(height, weight) {
-  if (!height || !weight) return '-';
-  return (weight / ((height / 100) ** 2)).toFixed(1);
+  if (!height || !weight) return "-";
+  return (weight / (height / 100) ** 2).toFixed(1);
 }
 
 // Получение информации о категории ИМТ
 function getBMIInfo(height, weight) {
   if (!height || !weight) {
-    return { 
-      class: '', 
-      label: 'Недостаточно данных', 
-      icon: '❓' 
+    return {
+      class: "",
+      label: "Недостаточно данных",
+      icon: "❓",
     };
   }
-  
-  const bmi = weight / ((height / 100) ** 2);
+
+  const bmi = weight / (height / 100) ** 2;
   for (const [key, value] of Object.entries(BMI_CATEGORIES)) {
     if (bmi < value.max) return value;
   }
@@ -302,14 +347,14 @@ function getBMIInfo(height, weight) {
 // Форматирование даты
 function formatDate(dateString) {
   if (!dateString) return null;
-  const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  return new Date(dateString).toLocaleDateString('ru-RU', options);
+  const options = { year: "numeric", month: "long", day: "numeric" };
+  return new Date(dateString).toLocaleDateString("ru-RU", options);
 }
 
 // Показать сообщение об ошибке
 function showError(message) {
-  const alert = document.createElement('div');
-  alert.className = 'alert error';
+  const alert = document.createElement("div");
+  alert.className = "alert error";
   alert.innerHTML = `❌ ${message}`;
   document.body.prepend(alert);
   setTimeout(() => alert.remove(), 5000);
@@ -317,8 +362,8 @@ function showError(message) {
 
 // Показать сообщение об успехе
 function showSuccess(message) {
-  const alert = document.createElement('div');
-  alert.className = 'alert success';
+  const alert = document.createElement("div");
+  alert.className = "alert success";
   alert.innerHTML = `✅ ${message}`;
   document.body.prepend(alert);
   setTimeout(() => alert.remove(), 3000);
@@ -328,23 +373,23 @@ function showSuccess(message) {
 async function exportToExcel() {
   try {
     showLoading(true);
-    
+
     const response = await fetch(API_URL);
     if (!response.ok) {
-      throw new Error('Ошибка загрузки данных для экспорта');
+      throw new Error("Ошибка загрузки данных для экспорта");
     }
-    
+
     const patients = await response.json();
-    const data = patients.map(patient => {
+    const data = patients.map((patient) => {
       const bmiInfo = getBMIInfo(patient.height, patient.weight);
       return {
-        'ФИО': patient.name,
-        'Дата рождения': formatDate(patient.birthDate),
-        'Рост (см)': patient.height,
-        'Вес (кг)': patient.weight,
-        'ИМТ': calculateBMI(patient.height, patient.weight),
-        'Категория ИМТ': bmiInfo.label,
-        'Статус': bmiInfo.icon
+        ФИО: patient.name,
+        "Дата рождения": formatDate(patient.birthDate),
+        "Рост (см)": patient.height,
+        "Вес (кг)": patient.weight,
+        ИМТ: calculateBMI(patient.height, patient.weight),
+        "Категория ИМТ": bmiInfo.label,
+        Статус: bmiInfo.icon,
       };
     });
 
@@ -352,7 +397,7 @@ async function exportToExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Пациенты");
     XLSX.writeFile(wb, "пациенты_АГ.xlsx");
-    showSuccess('Данные успешно экспортированы в Excel');
+    showSuccess("Данные успешно экспортированы в Excel");
   } catch (error) {
     showError(`Ошибка экспорта: ${error.message}`);
   } finally {
@@ -364,7 +409,3 @@ async function exportToExcel() {
 function printData() {
   window.print();
 }
-
-// Глобальные функции для вызова из HTML
-window.editPatient = editPatient;
-window.deletePatient = deletePatient;
