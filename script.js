@@ -137,47 +137,42 @@ async function loadPatients() {
 // Отображение списка пациентов
 function renderPatients(patients) {
   const tbody = elements.table.querySelector("tbody");
-  tbody.innerHTML = patients
-    .map((patient) => {
-      const bmiInfo = getBMIInfo(patient.height, patient.weight);
-      return `
-      <tr>
-        <td>${
-          patient.name || '<span class="missing-data">не указано</span>'
-        }</td>
-        <td>${
-          formatDate(patient.birthDate) ||
-          '<span class="missing-data">не указана</span>'
-        }</td>
-        <td>${calculateBMI(patient.height, patient.weight)}</td>
-        <td class="${bmiInfo.class}">
-          <span class="status-icon">${bmiInfo.icon}</span> ${bmiInfo.label}
-        </td>
-        <td>
-          <button data-id="${patient.id}" class="edit-btn">✏️</button>
-          <button data-id="${patient.id}" class="danger-btn">🗑️</button>
-        </td>
-      </tr>
+  tbody.innerHTML = "";
+
+  patients.forEach((patient) => {
+    const row = document.createElement("tr");
+    const bmiInfo = getBMIInfo(patient.height, patient.weight);
+
+    row.innerHTML = `
+      <td>${patient.name || '<span class="missing-data">не указано</span>'}</td>
+      <td>${
+        formatDate(patient.birthDate) ||
+        '<span class="missing-data">не указана</span>'
+      }</td>
+      <td>${calculateBMI(patient.height, patient.weight)}</td>
+      <td class="${bmiInfo.class}">
+        <span class="status-icon">${bmiInfo.icon}</span> ${bmiInfo.label}
+      </td>
+      <td>
+        <button class="edit-btn" data-id="${patient.id}">✏️</button>
+        <button class="danger-btn" data-id="${patient.id}">🗑️</button>
+      </td>
     `;
-    })
-    .join("");
 
-  // Добавляем обработчики событий после рендеринга
-  addEventListenersToButtons();
-}
+    tbody.appendChild(row);
+  });
 
-// Добавление обработчиков событий к кнопкам
-function addEventListenersToButtons() {
+  // Добавляем обработчики событий
   document.querySelectorAll(".edit-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const id = e.target.getAttribute("data-id");
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
       editPatient(id);
     });
   });
 
   document.querySelectorAll(".danger-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const id = e.target.getAttribute("data-id");
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
       deletePatient(id);
     });
   });
